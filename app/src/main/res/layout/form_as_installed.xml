@@ -1,0 +1,601 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        app:contentPadding="20dp"
+        app:cardElevation="3px"
+        tools:ignore="MissingConstraints">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Main Circuit Breaker"
+                    style="@style/TextAppearance.AppCompat.Widget.ActionBar.Subtitle"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/minimize_se_breaker"
+                    style="@style/Widget.MaterialComponents.Button.TextButton.Dialog.Flush"
+                    android:layout_width="40dp"
+                    android:layout_height="30dp"
+                    android:layout_alignParentRight="true"
+                    app:icon="@drawable/ic_baseline_remove_24" />
+
+            </RelativeLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1px"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="5dp"
+                android:background="@color/grey"/>
+
+            <TableLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="As Planned"
+                        android:textAlignment="center"
+                        android:layout_column="2"
+                        android:layout_weight="1"
+                        android:layout_marginLeft="20dp"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAlignment="center"
+                        android:text="Installed"
+                        android:layout_weight="1"
+                        android:layout_column="3"
+                        android:layout_marginLeft="20dp"/>
+
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Rating"
+                        android:layout_column="1"
+                        android:layout_marginRight="10dp"/>
+
+                    <EditText
+                        android:id="@+id/formBreakerRatingPlanned"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_column="2"
+                        android:layout_weight="1"
+                        android:background="@drawable/options_custom_form"
+                        android:paddingTop="5dp"
+                        android:paddingBottom="5dp"
+                        android:paddingLeft="15dp"
+                        android:paddingRight="10dp"
+                        android:inputType="numberDecimal"
+                        android:layout_marginRight="5dp"
+                        android:enabled="false"/>
+
+                    <EditText
+                        android:id="@+id/formBreakerRatingInstalled"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_column="3"
+                        android:layout_weight="1"
+                        android:background="@drawable/options_custom_form"
+                        android:paddingTop="5dp"
+                        android:paddingBottom="5dp"
+                        android:paddingLeft="15dp"
+                        android:paddingRight="10dp"
+                        android:inputType="numberDecimal"/>
+
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Branches"
+                        android:layout_column="1"
+                        android:layout_marginRight="10dp"/>
+
+                    <EditText
+                        android:id="@+id/formBreakerBranchesPlanned"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_column="2"
+                        android:layout_weight="1"
+                        android:background="@drawable/options_custom_form"
+                        android:paddingTop="5dp"
+                        android:paddingBottom="5dp"
+                        android:paddingLeft="15dp"
+                        android:paddingRight="10dp"
+                        android:inputType="numberDecimal"
+                        android:layout_marginRight="5dp"
+                        android:enabled="false"/>
+
+                    <EditText
+                        android:id="@+id/formBreakerBranchesInstalled"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_column="3"
+                        android:layout_weight="1"
+                        android:background="@drawable/options_custom_form"
+                        android:paddingTop="5dp"
+                        android:paddingBottom="5dp"
+                        android:paddingLeft="15dp"
+                        android:paddingRight="10dp"
+                        android:inputType="numberDecimal"/>
+
+                </TableRow>
+
+            </TableLayout>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        app:contentPadding="20dp"
+        app:cardElevation="3px"
+        tools:ignore="MissingConstraints">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Service Drop Wire"
+                    style="@style/TextAppearance.AppCompat.Widget.ActionBar.Subtitle"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/minimize_sdw"
+                    style="@style/Widget.MaterialComponents.Button.TextButton.Dialog.Flush"
+                    android:layout_width="40dp"
+                    android:layout_height="30dp"
+                    android:layout_alignParentRight="true"
+                    app:icon="@drawable/ic_baseline_remove_24" />
+
+            </RelativeLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1px"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="5dp"
+                android:background="@color/grey"/>
+
+            <TableLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="As Planned"
+                        android:textAlignment="center"
+                        android:layout_column="2"
+                        android:layout_weight="1"
+                        android:layout_marginLeft="20dp"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAlignment="center"
+                        android:text="Installed"
+                        android:layout_weight="1"
+                        android:layout_column="3"
+                        android:layout_marginLeft="20dp"/>
+
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Size"
+                        android:layout_column="1"
+                        android:layout_marginRight="10dp"/>
+
+                    <EditText
+                        android:id="@+id/formSdwSizePlanned"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_column="2"
+                        android:layout_weight="1"
+                        android:background="@drawable/options_custom_form"
+                        android:paddingTop="5dp"
+                        android:paddingBottom="5dp"
+                        android:paddingLeft="15dp"
+                        android:paddingRight="10dp"
+                        android:inputType="numberDecimal"
+                        android:layout_marginRight="5dp"
+                        android:enabled="false"/>
+
+                    <EditText
+                        android:id="@+id/formSdwSizeInstalled"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_column="3"
+                        android:layout_weight="1"
+                        android:background="@drawable/options_custom_form"
+                        android:paddingTop="5dp"
+                        android:paddingBottom="5dp"
+                        android:paddingLeft="15dp"
+                        android:paddingRight="10dp"
+                        android:inputType="numberDecimal"/>
+
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Length"
+                        android:layout_column="1"
+                        android:layout_marginRight="10dp"/>
+
+                    <EditText
+                        android:id="@+id/formSdwLengthPlanned"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_column="2"
+                        android:layout_weight="1"
+                        android:background="@drawable/options_custom_form"
+                        android:paddingTop="5dp"
+                        android:paddingBottom="5dp"
+                        android:paddingLeft="15dp"
+                        android:paddingRight="10dp"
+                        android:inputType="numberDecimal"
+                        android:layout_marginRight="5dp"
+                        android:enabled="false"/>
+
+                    <EditText
+                        android:id="@+id/formSdwLengthInstalled"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_column="3"
+                        android:layout_weight="1"
+                        android:background="@drawable/options_custom_form"
+                        android:paddingTop="5dp"
+                        android:paddingBottom="5dp"
+                        android:paddingLeft="15dp"
+                        android:paddingRight="10dp"
+                        android:inputType="numberDecimal"/>
+
+                </TableRow>
+
+            </TableLayout>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        app:contentPadding="20dp"
+        app:cardElevation="3px"
+        tools:ignore="MissingConstraints">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Service Poles"
+                    style="@style/TextAppearance.AppCompat.Widget.ActionBar.Subtitle"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/minimize_poles"
+                    style="@style/Widget.MaterialComponents.Button.TextButton.Dialog.Flush"
+                    android:layout_width="40dp"
+                    android:layout_height="30dp"
+                    android:layout_alignParentRight="true"
+                    app:icon="@drawable/ic_baseline_remove_24" />
+
+            </RelativeLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1px"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="5dp"
+                android:background="@color/grey"/>
+
+            <TableLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1px"
+                        android:layout_column="1"
+                        android:layout_weight="1"
+                        />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="G.I."
+                        android:layout_column="2"
+                        android:layout_weight="1"
+                        android:textAlignment="center"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="CONCRETE"
+                        android:layout_weight="1"
+                        android:layout_column="3"
+                        android:textAlignment="center"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="HARDWOOD"
+                        android:layout_weight="1"
+                        android:layout_column="4"
+                        android:textAlignment="center"/>
+
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Diameter"
+                        android:layout_column="1"
+                        android:layout_marginRight="10dp"/>
+
+                    <EditText
+                        android:id="@+id/formLiftPolesDiameterGI"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_column="2"
+                        android:background="@drawable/options_custom_form"
+                        android:paddingTop="5dp"
+                        android:paddingBottom="5dp"
+                        android:paddingLeft="15dp"
+                        android:paddingRight="10dp"
+                        android:inputType="numberDecimal"
+                        android:hint="inches"
+                        android:layout_weight="15"
+                        android:layout_marginRight="5dp"/>
+
+                    <EditText
+                        android:id="@+id/formLiftPolesDiameterConcrete"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_column="3"
+                        android:background="@drawable/options_custom_form"
+                        android:paddingTop="5dp"
+                        android:paddingBottom="5dp"
+                        android:paddingLeft="15dp"
+                        android:paddingRight="10dp"
+                        android:inputType="numberDecimal"
+                        android:hint="inches"
+                        android:layout_weight="15"
+                        android:layout_marginRight="5dp"/>
+
+                    <EditText
+                        android:id="@+id/formLiftPolesDiameterHardWood"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_column="4"
+                        android:background="@drawable/options_custom_form"
+                        android:paddingTop="5dp"
+                        android:paddingBottom="5dp"
+                        android:paddingLeft="15dp"
+                        android:paddingRight="10dp"
+                        android:hint="inches"
+                        android:layout_weight="15"
+                        android:inputType="numberDecimal"/>
+
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Height"
+                        android:layout_column="1"
+                        android:layout_marginRight="10dp"/>
+
+                    <EditText
+                        android:id="@+id/formLiftPolesHeightGI"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_column="2"
+                        android:background="@drawable/options_custom_form"
+                        android:paddingTop="5dp"
+                        android:paddingBottom="5dp"
+                        android:paddingLeft="15dp"
+                        android:paddingRight="10dp"
+                        android:inputType="numberDecimal"
+                        android:hint="meters"
+                        android:layout_weight="15"
+                        android:layout_marginRight="5dp"/>
+
+                    <EditText
+                        android:id="@+id/formLiftPolesHeightConcrete"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_column="3"
+                        android:background="@drawable/options_custom_form"
+                        android:paddingTop="5dp"
+                        android:paddingBottom="5dp"
+                        android:paddingLeft="15dp"
+                        android:paddingRight="10dp"
+                        android:inputType="numberDecimal"
+                        android:hint="meters"
+                        android:layout_weight="15"
+                        android:layout_marginRight="5dp"/>
+
+                    <EditText
+                        android:id="@+id/formLiftPolesHeightHardWood"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_column="4"
+                        android:background="@drawable/options_custom_form"
+                        android:paddingTop="5dp"
+                        android:paddingBottom="5dp"
+                        android:paddingLeft="15dp"
+                        android:paddingRight="10dp"
+                        android:hint="meters"
+                        android:layout_weight="15"
+                        android:inputType="numberDecimal"/>
+
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Quantity"
+                        android:layout_column="1"
+                        android:layout_marginRight="10dp"/>
+
+                    <EditText
+                        android:id="@+id/formLiftPolesQuantityGI"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_column="2"
+                        android:background="@drawable/options_custom_form"
+                        android:paddingTop="5dp"
+                        android:paddingBottom="5dp"
+                        android:paddingLeft="15dp"
+                        android:paddingRight="10dp"
+                        android:inputType="numberDecimal"
+                        android:hint="pcs"
+                        android:layout_marginRight="5dp"
+                        android:layout_weight="15"/>
+
+                    <EditText
+                        android:id="@+id/formLiftPolesQuantityConcrete"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_column="3"
+                        android:layout_marginRight="5dp"
+                        android:background="@drawable/options_custom_form"
+                        android:hint="pcs"
+                        android:inputType="numberDecimal"
+                        android:paddingLeft="15dp"
+                        android:paddingTop="5dp"
+                        android:paddingRight="10dp"
+                        android:layout_weight="15"
+                        android:paddingBottom="5dp" />
+
+                    <EditText
+                        android:id="@+id/formLiftPolesQuantityHardWood"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_column="4"
+                        android:background="@drawable/options_custom_form"
+                        android:paddingTop="5dp"
+                        android:paddingBottom="5dp"
+                        android:paddingLeft="15dp"
+                        android:paddingRight="10dp"
+                        android:layout_weight="15"
+                        android:hint="pcs"
+                        android:inputType="numberDecimal"/>
+
+                </TableRow>
+
+            </TableLayout>
+
+            <EditText
+                android:id="@+id/formLiftPolesRemarks"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:lines="2"
+                android:hint="Pole Remarks and Comments"
+                android:inputType="textMultiLine"
+                android:background="@drawable/options_custom_form"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:paddingLeft="15dp"
+                android:paddingRight="10dp"
+                android:layout_marginTop="3dp"/>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+</LinearLayout>

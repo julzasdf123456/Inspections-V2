@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_marginBottom="50dp"
+    android:orientation="vertical">
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        app:contentPadding="20dp"
+        app:cardElevation="3px"
+        tools:ignore="MissingConstraints">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Geo Referencing"
+                    style="@style/TextAppearance.AppCompat.Widget.ActionBar.Subtitle"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/minimize_geo"
+                    style="@style/Widget.MaterialComponents.Button.TextButton.Dialog.Flush"
+                    android:layout_width="40dp"
+                    android:layout_height="30dp"
+                    android:layout_alignParentRight="true"
+                    app:icon="@drawable/ic_baseline_remove_24" />
+
+            </RelativeLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1px"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="5dp"
+                android:background="@color/grey"/>
+
+            <TableLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Tapping Pole"
+                        android:layout_column="1"
+                        android:layout_marginRight="10dp"/>
+
+                    <EditText
+                        android:id="@+id/formGeoTappingPole"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_column="2"
+                        android:layout_weight="10"
+                        android:background="@drawable/options_custom_form"
+                        android:paddingTop="5dp"
+                        android:paddingBottom="5dp"
+                        android:paddingLeft="15dp"
+                        android:paddingRight="10dp"
+                        android:inputType="text"
+                        android:layout_marginRight="5dp"/>
+
+                    <ImageButton
+                        android:id="@+id/formGeoTappingPoleBtn"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_column="3"
+                        android:src="@drawable/ic_round_add_location_alt_24"
+                        app:tint="@color/white"
+                        android:layout_marginLeft="10dp"
+                        android:background="@drawable/circular_btn"
+                        android:clickable="true"
+                        android:elevation="1dp"
+                        style="@style/Widget.AppCompat.Button.Colored"
+                        android:layout_marginBottom="3dp"
+                        android:layout_marginRight="3dp"/>
+
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Metering Pole"
+                        android:layout_column="1"
+                        android:layout_marginRight="10dp"/>
+
+                    <EditText
+                        android:id="@+id/formGeoMeteringPole"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_column="2"
+                        android:layout_weight="1"
+                        android:background="@drawable/options_custom_form"
+                        android:paddingTop="5dp"
+                        android:paddingBottom="5dp"
+                        android:paddingLeft="15dp"
+                        android:paddingRight="10dp"
+                        android:inputType="text"
+                        android:layout_marginRight="5dp"/>
+
+                    <ImageButton
+                        android:id="@+id/formGeoMeteringPoleBtn"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_column="3"
+                        android:src="@drawable/ic_round_add_location_alt_24"
+                        app:tint="@color/white"
+                        android:layout_marginLeft="10dp"
+                        android:background="@drawable/circular_btn"
+                        android:clickable="true"
+                        android:elevation="1dp"
+                        style="@style/Widget.AppCompat.Button.Colored"
+                        android:layout_marginBottom="3dp"
+                        android:layout_marginRight="3dp"/>
+
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="SE Pole"
+                        android:layout_column="1"
+                        android:layout_marginRight="10dp"/>
+
+                    <EditText
+                        android:id="@+id/formSEPole"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_column="2"
+                        android:layout_weight="1"
+                        android:background="@drawable/options_custom_form"
+                        android:paddingTop="5dp"
+                        android:paddingBottom="5dp"
+                        android:paddingLeft="15dp"
+                        android:paddingRight="10dp"
+                        android:inputType="text"
+                        android:layout_marginRight="5dp"/>
+
+                    <ImageButton
+                        android:id="@+id/formGeoSEPoleBtn"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_column="3"
+                        android:src="@drawable/ic_round_add_location_alt_24"
+                        app:tint="@color/white"
+                        android:layout_marginLeft="10dp"
+                        android:background="@drawable/circular_btn"
+                        android:clickable="true"
+                        android:elevation="1dp"
+                        style="@style/Widget.AppCompat.Button.Colored"
+                        android:layout_marginBottom="3dp"
+                        android:layout_marginRight="3dp"/>
+
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Building"
+                        android:layout_column="1"
+                        android:layout_marginRight="10dp"/>
+
+                    <EditText
+                        android:id="@+id/formGeoBuilding"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_column="2"
+                        android:layout_weight="1"
+                        android:background="@drawable/options_custom_form"
+                        android:paddingTop="5dp"
+                        android:paddingBottom="5dp"
+                        android:paddingLeft="15dp"
+                        android:paddingRight="10dp"
+                        android:inputType="text"
+                        android:layout_marginRight="5dp"/>
+
+                    <ImageButton
+                        android:id="@+id/formGeoBuildingBtn"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_column="3"
+                        android:src="@drawable/ic_round_add_location_alt_24"
+                        app:tint="@color/white"
+                        android:layout_marginLeft="10dp"
+                        android:background="@drawable/circular_btn"
+                        android:clickable="true"
+                        android:elevation="1dp"
+                        style="@style/Widget.AppCompat.Button.Colored"
+                        android:layout_marginBottom="3dp"
+                        android:layout_marginRight="3dp"/>
+
+                </TableRow>
+
+            </TableLayout>
+
+            <com.mapbox.mapboxsdk.maps.MapView
+                android:id="@+id/mapViewForm"
+                android:layout_width="match_parent"
+                android:layout_height="140dp"
+                android:layout_marginTop="10dp"
+                app:mapbox_cameraZoom="15" />
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        app:contentPadding="20dp"
+        app:cardElevation="3px"
+        tools:ignore="MissingConstraints">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Assessment"
+                    style="@style/TextAppearance.AppCompat.Widget.ActionBar.Subtitle"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/minimize_verdict"
+                    style="@style/Widget.MaterialComponents.Button.TextButton.Dialog.Flush"
+                    android:layout_width="40dp"
+                    android:layout_height="30dp"
+                    android:layout_alignParentRight="true"
+                    app:icon="@drawable/ic_baseline_remove_24" />
+
+            </RelativeLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1px"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="5dp"
+                android:background="@color/grey"/>
+
+            <RadioGroup
+                android:id="@+id/formRecommendation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <RadioButton
+                    android:id="@+id/opsApproved"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Approved"
+                    android:layout_marginRight="15dp"
+                    android:layout_marginLeft="15dp"/>
+
+                <RadioButton
+                    android:id="@+id/opsReInspection"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Re-Inspection"
+                    android:layout_marginRight="15dp"
+                    android:layout_marginLeft="15dp"
+                    android:paddingBottom="5dp"/>
+
+            </RadioGroup>
+
+            <EditText
+                android:id="@+id/formReverificationRemarks"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:lines="2"
+                android:hint="Re-Verification Remarks"
+                android:inputType="textMultiLine"
+                android:background="@drawable/options_custom_form"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:paddingLeft="15dp"
+                android:paddingRight="10dp"
+                android:layout_marginTop="3dp"/>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+</LinearLayout>

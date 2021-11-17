@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/archiveLayoutParent"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:padding="15dp"
+    android:clickable="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/download_recyclerview_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/TextAppearance.AppCompat.SearchResult.Title"
+            android:text="Full Name"
+            android:drawableRight="@drawable/ic_round_check_circle_24"
+            android:drawablePadding="8dp"
+            android:drawableTint="@color/teal_200"/>
+
+        <TextView
+            android:id="@+id/download_recyclerview_id"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="ID"
+            android:layout_marginTop="5dp"/>
+
+    </LinearLayout>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/delete_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:fabSize="mini"
+        android:src="@drawable/ic_round_delete_forever_24"
+        android:layout_gravity="right"
+        app:tint="@android:color/white"
+        app:backgroundTint="@color/red"
+        app:elevation="0dp"/>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
