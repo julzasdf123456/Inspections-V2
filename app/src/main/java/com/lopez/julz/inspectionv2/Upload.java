@@ -10,6 +10,7 @@ import androidx.room.Room;
 
 import android.annotation.SuppressLint;
 import android.content.DialogInterface;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -31,14 +32,20 @@ import com.lopez.julz.inspectionv2.classes.UploadAdapter;
 import com.lopez.julz.inspectionv2.database.AppDatabase;
 import com.lopez.julz.inspectionv2.database.LocalServiceConnectionInspections;
 import com.lopez.julz.inspectionv2.database.LocalServiceConnections;
+import com.lopez.julz.inspectionv2.database.Photos;
 import com.lopez.julz.inspectionv2.database.ServiceConnectionInspectionsDao;
 import com.lopez.julz.inspectionv2.database.ServiceConnectionsDao;
 import com.lopez.julz.inspectionv2.helpers.AlertHelpers;
 import com.lopez.julz.inspectionv2.helpers.ObjectHelpers;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -100,6 +107,7 @@ public class Upload extends AppCompatActivity {
             public void onClick(View v) {
                 try {
                     new UploadData().execute();
+                    new UploadImages().execute();
                 } catch (Exception e){
                     Log.e("ERR_UPLOAD", e.getMessage());
                 }
@@ -262,6 +270,67 @@ public class Upload extends AppCompatActivity {
         @Override
         protected void onPostExecute(Void unused) {
             super.onPostExecute(unused);
+        }
+    }
+
+    class UploadImages extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            try {
+                if (serviceConnectionsList != null) {
+                    for (int i=0; i<serviceConnectionsList.size(); i++) {
+                        List<Photos> photosList = db.photosDao().getAllPhotos(serviceConnectionsList.get(i).getId());
+
+                        for (int j=0; j<photosList.size(); j++) {
+                            File imgFile = new File(photosList.get(j).getPath());
+                            if (imgFile.exists()) {
+                                uploadFile(imgFile, serviceConnectionsList.get(i).getId());
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                Log.e("ERR_GET_IMGS", e.getMessage());
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void unused) {
+            super.onPostExecute(unused);
+        }
+    }
+
+    public void uploadFile(File file, String serviceConnectionId) {
+        try {
+            RequestBody requestFile = RequestBody.create(MediaType.parse("multipart/form-data"), file);
+
+            MultipartBody.Part fileBody = MultipartBody.Part.createFormData("file", file.getName(), requestFile);
+
+            Call<ResponseBody> uploadCall = requestPlaceHolder.saveUploadedImages(serviceConnectionId, fileBody);
+
+            uploadCall.enqueue(new Callback<ResponseBody>() {
+                @Override
+                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                    if (response.isSuccessful()) {
+                        if (response.code() == 200) {
+                            Log.e("UPLD_IMG_OK", "Image uploaded : " + serviceConnectionId + " - " + file.getName());
+                        } else {
+                            Log.e("ERR_UPLOD", response.message());
+                        }
+                    } else {
+                        Log.e("UPLD_IMG_ERR", response.message());
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                    Log.e("UPLD_IMG_ERR", t.getMessage());
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

@@ -1,26 +1,40 @@
 package com.lopez.julz.inspectionv2;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.PopupMenu;
 import androidx.appcompat.widget.Toolbar;
+import androidx.constraintlayout.widget.Constraints;
+import androidx.core.content.FileProvider;
 import androidx.room.Room;
 import androidx.transition.AutoTransition;
 import androidx.transition.TransitionManager;
 
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.flexbox.FlexboxLayout;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -28,6 +42,7 @@ import com.google.android.material.snackbar.Snackbar;
 import com.lopez.julz.inspectionv2.database.AppDatabase;
 import com.lopez.julz.inspectionv2.database.LocalServiceConnectionInspections;
 import com.lopez.julz.inspectionv2.database.LocalServiceConnections;
+import com.lopez.julz.inspectionv2.database.Photos;
 import com.lopez.julz.inspectionv2.database.ServiceConnectionInspectionsDao;
 import com.lopez.julz.inspectionv2.database.ServiceConnectionsDao;
 import com.lopez.julz.inspectionv2.helpers.AlertHelpers;
@@ -44,6 +59,11 @@ import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.maps.Style;
 
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class FormEdit extends AppCompatActivity implements PermissionsListener, OnMapReadyCallback {
@@ -75,13 +95,17 @@ public class FormEdit extends AppCompatActivity implements PermissionsListener, 
     public EditText formReverificationRemarks;
     public RadioGroup formRecommendation;
 
-    public FloatingActionButton saveBtn;
+    public FloatingActionButton saveBtn, cameraBtn;
 
     // MAP
     public MapView mapView;
     private PermissionsManager permissionsManager;
     private MapboxMap mapboxMap;
     private LocationComponent locationComponent;
+
+    static final int REQUEST_PICTURE_CAPTURE = 1;
+    public FlexboxLayout imageFields;
+    public String currentPhotoPath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -151,6 +175,9 @@ public class FormEdit extends AppCompatActivity implements PermissionsListener, 
         formGeoMeteringPoleBtn = (ImageButton) findViewById(R.id.formGeoMeteringPoleBtn);
         formGeoSEPoleBtn = (ImageButton) findViewById(R.id.formGeoSEPoleBtn);
 
+        cameraBtn = findViewById(R.id.cameraBtn);
+        imageFields = findViewById(R.id.imageFields);
+
         saveBtn = (FloatingActionButton) findViewById(R.id.saveBtn);
 
         saveBtn.setOnClickListener(new View.OnClickListener() {
@@ -207,6 +234,15 @@ public class FormEdit extends AppCompatActivity implements PermissionsListener, 
                 fetchCoordinates(formGeoBuilding);
             }
         });
+
+        cameraBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dispatchTakePictureIntent();
+            }
+        });
+
+        new GetPhotos().execute();
     }
 
     @Override
@@ -320,6 +356,53 @@ public class FormEdit extends AppCompatActivity implements PermissionsListener, 
     }
 
     @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_PICTURE_CAPTURE && resultCode == RESULT_OK) {
+            File imgFile = new  File(currentPhotoPath);
+            Bitmap bitmap = BitmapFactory.decodeFile(imgFile.getPath());
+            Bitmap scaledBmp = Bitmap.createScaledBitmap(bitmap, bitmap.getWidth()/8, bitmap.getHeight()/8, true);
+
+            ImageView imageView = new ImageView(FormEdit.this);
+            Constraints.LayoutParams layoutParams = new Constraints.LayoutParams(scaledBmp.getWidth(), scaledBmp.getHeight());
+            imageView.setLayoutParams(layoutParams);
+            imageView.setPadding(0, 5, 5, 0);
+            if (imgFile.exists()) {
+                imageView.setImageBitmap(scaledBmp);
+            }
+            imageFields.addView(imageView);
+
+            imageView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    PopupMenu popup = new PopupMenu(FormEdit.this,imageView);
+                    //inflating menu from xml resource
+                    popup.inflate(R.menu.image_menu);
+                    //adding click listener
+                    popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                        @Override
+                        public boolean onMenuItemClick(MenuItem item) {
+                            switch (item.getItemId()) {
+                                case R.id.delete_img:
+                                    if (imgFile.exists()) {
+                                        imgFile.delete();
+                                        new GetPhotos().execute();
+                                    }
+                                    return true;
+                                default:
+                                    return false;
+                            }
+                        }
+                    });
+                    //displaying the popup
+                    popup.show();
+                    return false;
+                }
+            });
+        }
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         mapView.onDestroy();
@@ -343,11 +426,16 @@ public class FormEdit extends AppCompatActivity implements PermissionsListener, 
 
     class FetchServiceConnectionData extends AsyncTask<String, Void, Void> {
 
+        private String barangay, town;
+
         @Override
         protected Void doInBackground(String... strings) {
             try {
                 ServiceConnectionsDao serviceConnectionsDao = db.serviceConnectionsDao();
                 serviceConnections = serviceConnectionsDao.getOne(strings[0]);
+
+                barangay = db.barangaysDao().getOne(serviceConnections.getBarangay()).getBarangay();
+                town = db.townsDao().getOne(serviceConnections.getTown()).getTown();
             } catch (Exception e) {
                 Log.e("ERR_GET_SVC_FORM", e.getMessage());
             }
@@ -364,7 +452,7 @@ public class FormEdit extends AppCompatActivity implements PermissionsListener, 
                 } else {
                     form_name.setText(serviceConnections.getServiceAccountName());
                     form_svc_id.setText(serviceConnections.getId());
-                    form_address.setText(serviceConnections.getBarangay() + ", " + serviceConnections.getTown());
+                    form_address.setText(serviceConnections.getSitio() + ", " + barangay + ", " + town);
                     form_contact.setText(serviceConnections.getContactNumber());
                 }
             } catch (Exception e) {
@@ -500,6 +588,134 @@ public class FormEdit extends AppCompatActivity implements PermissionsListener, 
             }
         } else {
             return 0;
+        }
+    }
+
+    /**
+     * TAKE PHOTOS
+     */
+    private void dispatchTakePictureIntent() {
+        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        cameraIntent.putExtra( MediaStore.EXTRA_FINISH_ON_COMPLETION, true);
+        if (cameraIntent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(cameraIntent, REQUEST_PICTURE_CAPTURE);
+
+            File pictureFile = null;
+            try {
+                pictureFile = createImageFile();
+            } catch (IOException ex) {
+                Toast.makeText(this,
+                        "Photo file can't be created, please try again",
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (pictureFile != null) {
+                Uri photoURI = FileProvider.getUriForFile(this,
+                        "com.lopez.julz.inspectionv2",
+                        pictureFile);
+                cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                startActivityForResult(cameraIntent, REQUEST_PICTURE_CAPTURE);
+            }
+        }
+    }
+
+    private File createImageFile() throws IOException {
+        String timeStamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+        String pictureFile = "CRM_" + timeStamp;
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(pictureFile,  ".jpg", storageDir);
+        currentPhotoPath = image.getAbsolutePath();
+        new SavePhotoToDatabase().execute(svcId, currentPhotoPath);
+        return image;
+    }
+
+    public class SavePhotoToDatabase extends AsyncTask<String, Void, Void> {
+
+        @Override
+        protected Void doInBackground(String... strings) {
+            try {
+                if (strings != null) {
+                    String scId = strings[0];
+                    String photo = strings[1];
+
+                    Photos photoObject = new Photos(photo, scId);
+                    db.photosDao().insertAll(photoObject);
+                }
+            } catch (Exception e) {
+                Log.e("ERR_SAVE_PHOTO_DB", e.getMessage());
+            }
+
+            return null;
+        }
+    }
+
+    public class GetPhotos extends AsyncTask<Void, Void, Void> {
+
+        List<Photos> photosList = new ArrayList<>();
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            imageFields.removeAllViews();
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            try {
+                photosList.addAll(db.photosDao().getAllPhotos(svcId));
+            } catch (Exception e) {
+                Log.e("ERR_GET_IMGS", e.getMessage());
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void unused) {
+            super.onPostExecute(unused);
+
+            if (photosList != null) {
+                for(int i=0; i<photosList.size(); i++) {
+                    File file = new File(photosList.get(i).getPath());
+                    if (file.exists()) {
+                        Bitmap bitmap = BitmapFactory.decodeFile(file.getPath());
+                        Bitmap scaledBmp = Bitmap.createScaledBitmap(bitmap, bitmap.getWidth()/8, bitmap.getHeight()/8, true);
+                        ImageView imageView = new ImageView(FormEdit.this);
+                        Constraints.LayoutParams layoutParams = new Constraints.LayoutParams(scaledBmp.getWidth(), scaledBmp.getHeight());
+                        imageView.setLayoutParams(layoutParams);
+                        imageView.setPadding(0, 5, 5, 0);
+                        imageView.setImageBitmap(scaledBmp);
+                        imageFields.addView(imageView);
+
+                        imageView.setOnLongClickListener(new View.OnLongClickListener() {
+                            @Override
+                            public boolean onLongClick(View v) {
+                                PopupMenu popup = new PopupMenu(FormEdit.this,imageView);
+                                //inflating menu from xml resource
+                                popup.inflate(R.menu.image_menu);
+                                //adding click listener
+                                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                                    @Override
+                                    public boolean onMenuItemClick(MenuItem item) {
+                                        switch (item.getItemId()) {
+                                            case R.id.delete_img:
+                                                file.delete();
+                                                new GetPhotos().execute();
+                                                return true;
+                                            default:
+                                                return false;
+                                        }
+                                    }
+                                });
+                                //displaying the popup
+                                popup.show();
+                                return false;
+                            }
+                        });
+                    } else {
+                        Log.e("ERR_RETRV_FILE", "Error retriveing file");
+                    }
+                }
+            }
         }
     }
 }

@@ -200,6 +200,8 @@
 
                 <include layout="@layout/form_geo"/>
 
+                <include layout="@layout/form_photos"/>
+
             </LinearLayout>
 
         </ScrollView>
