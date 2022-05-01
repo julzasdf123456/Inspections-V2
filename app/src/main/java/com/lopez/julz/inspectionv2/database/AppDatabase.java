@@ -8,7 +8,9 @@ import androidx.room.RoomDatabase;
         OfflineUsers.class,
         Photos.class,
         Barangays.class,
-        Towns.class}, version = 7)
+        Towns.class,
+        Users.class,
+        Settings.class}, version = 9)
 public abstract class AppDatabase extends RoomDatabase {
     public abstract ServiceConnectionsDao serviceConnectionsDao();
 
@@ -21,4 +23,8 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract BarangaysDao barangaysDao();
 
     public abstract TownsDao townsDao();
+
+    public abstract UsersDao usersDao();
+
+    public abstract SettingsDao settingsDao();
 }

@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -25,6 +26,7 @@ import com.lopez.julz.inspectionv2.database.LocalServiceConnectionInspections;
 import com.lopez.julz.inspectionv2.database.LocalServiceConnections;
 import com.lopez.julz.inspectionv2.database.ServiceConnectionInspectionsDao;
 import com.lopez.julz.inspectionv2.database.ServiceConnectionsDao;
+import com.lopez.julz.inspectionv2.database.Settings;
 import com.lopez.julz.inspectionv2.helpers.ObjectHelpers;
 
 import java.util.ArrayList;
@@ -52,6 +54,8 @@ public class Download extends AppCompatActivity {
 
     public String userid;
 
+    public Settings settings;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,9 +63,6 @@ public class Download extends AppCompatActivity {
 
         download_toolbar = (Toolbar) findViewById(R.id.download_toolbar);
         download_recyclerview = (RecyclerView) findViewById(R.id.download_recyclerview);
-
-        retrofitBuilder = new RetrofitBuilder();
-        requestPlaceHolder = retrofitBuilder.getRetrofit().create(RequestPlaceHolder.class);
 
         db = Room.databaseBuilder(this,
                 AppDatabase.class, ObjectHelpers.databaseName()).fallbackToDestructiveMigration().build();
@@ -81,17 +82,6 @@ public class Download extends AppCompatActivity {
         download_recyclerview.setLayoutManager(new LinearLayoutManager(this));
 
         download_button = (FloatingActionButton) findViewById(R.id.download_button);
-
-        fetchTotalServiceConnections(userid);
-        fetchTotalServiceConnectionInspections(userid);
-
-        download_button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new DownloadServiceConnections().execute();
-                new DownloadServiceConnectionInspections().execute();
-            }
-        });
     }
 
     @Override
@@ -100,6 +90,12 @@ public class Download extends AppCompatActivity {
             finish();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        new FetchSettings().execute();
     }
 
     public void fetchTotalServiceConnections(String userId) {
@@ -336,6 +332,41 @@ public class Download extends AppCompatActivity {
         protected void onPostExecute(Void unused) {
             super.onPostExecute(unused);
             Log.e("INSPCT_STATUS", "Logged " + serviceConnectionInspectionsList.size() + " inspections to be downloaded");
+        }
+    }
+
+    public class FetchSettings extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            try {
+                settings = db.settingsDao().getSettings();
+            } catch (Exception e) {
+                Log.e("ERR_FETCH_SETTINGS", e.getMessage());
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void unused) {
+            super.onPostExecute(unused);
+            if (settings != null) {
+                retrofitBuilder = new RetrofitBuilder(settings.getDefaultServer());
+                requestPlaceHolder = retrofitBuilder.getRetrofit().create(RequestPlaceHolder.class);
+
+                fetchTotalServiceConnections(userid);
+                fetchTotalServiceConnectionInspections(userid);
+
+                download_button.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        new DownloadServiceConnections().execute();
+                        new DownloadServiceConnectionInspections().execute();
+                    }
+                });
+            } else {
+                startActivity(new Intent(Download.this, SettingsActivity.class));
+            }
         }
     }
 }

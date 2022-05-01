@@ -23,6 +23,7 @@ import com.lopez.julz.inspectionv2.database.LocalServiceConnectionInspections;
 import com.lopez.julz.inspectionv2.database.LocalServiceConnections;
 import com.lopez.julz.inspectionv2.database.ServiceConnectionInspectionsDao;
 import com.lopez.julz.inspectionv2.database.ServiceConnectionsDao;
+import com.lopez.julz.inspectionv2.database.Settings;
 import com.lopez.julz.inspectionv2.database.Towns;
 import com.lopez.julz.inspectionv2.helpers.ObjectHelpers;
 
@@ -47,13 +48,12 @@ public class MainActivity extends AppCompatActivity {
 
     public String userid;
 
+    public Settings settings;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        retrofitBuilder = new RetrofitBuilder();
-        requestPlaceHolder = retrofitBuilder.getRetrofit().create(RequestPlaceHolder.class);
 
         db = Room.databaseBuilder(this,
                 AppDatabase.class, ObjectHelpers.databaseName()).fallbackToDestructiveMigration().build();
@@ -69,12 +69,6 @@ public class MainActivity extends AppCompatActivity {
         dashboard_download_card = findViewById(R.id.dashboard_download_card);
         dashboard_archive_card = findViewById(R.id.dashboard_archive_card);
 
-        downloadBarangays();
-        downloadTowns();
-
-        fetchTotalServiceConnections(userid);
-        new FetchTotalArchive().execute();
-        new FetchUnunploadedInspections().execute();
 
         dashboard_download_card.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -110,9 +104,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        fetchTotalServiceConnections(userid);
-        new FetchTotalArchive().execute();
-        new FetchUnunploadedInspections().execute();
+        new FetchSettings().execute();
     }
 
     public void fetchTotalServiceConnections(String userId) {
@@ -336,6 +328,37 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(Void unused) {
             super.onPostExecute(unused);
             Log.e("TOWNS_DL_DONE", "Towns downloaded");
+        }
+    }
+
+    public class FetchSettings extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            try {
+                settings = db.settingsDao().getSettings();
+            } catch (Exception e) {
+                Log.e("ERR_FETCH_SETTINGS", e.getMessage());
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void unused) {
+            super.onPostExecute(unused);
+            if (settings != null) {
+                retrofitBuilder = new RetrofitBuilder(settings.getDefaultServer());
+                requestPlaceHolder = retrofitBuilder.getRetrofit().create(RequestPlaceHolder.class);
+
+                fetchTotalServiceConnections(userid);
+                new FetchTotalArchive().execute();
+                new FetchUnunploadedInspections().execute();
+
+                downloadBarangays();
+                downloadTowns();
+            } else {
+                startActivity(new Intent(MainActivity.this, SettingsActivity.class));
+            }
         }
     }
 }

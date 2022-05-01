@@ -1,5 +1,7 @@
 package com.lopez.julz.inspectionv2.helpers;
 
+import android.content.Context;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.util.Log;
 import android.view.View;
@@ -7,6 +9,7 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
 import androidx.annotation.RequiresApi;
+import androidx.core.app.ActivityCompat;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -38,5 +41,16 @@ public class ObjectHelpers {
             Log.e("ERR_GET_DATE", e.getMessage());
             return null;
         }
+    }
+
+    public static boolean hasPermissions(Context context, String... permissions) {
+        if (context != null && permissions != null) {
+            for (String permission : permissions) {
+                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }

@@ -10,6 +10,7 @@ import androidx.room.Room;
 
 import android.annotation.SuppressLint;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -35,6 +36,7 @@ import com.lopez.julz.inspectionv2.database.LocalServiceConnections;
 import com.lopez.julz.inspectionv2.database.Photos;
 import com.lopez.julz.inspectionv2.database.ServiceConnectionInspectionsDao;
 import com.lopez.julz.inspectionv2.database.ServiceConnectionsDao;
+import com.lopez.julz.inspectionv2.database.Settings;
 import com.lopez.julz.inspectionv2.helpers.AlertHelpers;
 import com.lopez.julz.inspectionv2.helpers.ObjectHelpers;
 
@@ -69,13 +71,12 @@ public class Upload extends AppCompatActivity {
     public LinearLayout upload_area;
     public LinearProgressIndicator upload_progress_bar;
 
+    public Settings settings;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_upload);
-
-        retrofitBuilder = new RetrofitBuilder();
-        requestPlaceHolder = retrofitBuilder.getRetrofit().create(RequestPlaceHolder.class);
 
         db = Room.databaseBuilder(this,
                 AppDatabase.class, ObjectHelpers.databaseName()).fallbackToDestructiveMigration().build();
@@ -101,27 +102,12 @@ public class Upload extends AppCompatActivity {
         getSupportActionBar().setDisplayShowTitleEnabled(false);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-        upload_button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try {
-                    new UploadData().execute();
-                    new UploadImages().execute();
-                } catch (Exception e){
-                    Log.e("ERR_UPLOAD", e.getMessage());
-                }
-            }
-        });
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        localServiceConnectionInspectionsList.clear();
-        serviceConnectionsList.clear();
-        uploadAdapter.notifyDataSetChanged();
-        new FetchUnunploadedInspections().execute();
+        new FetchSettings().execute();
     }
 
     @Override
@@ -331,6 +317,47 @@ public class Upload extends AppCompatActivity {
             });
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public class FetchSettings extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            try {
+                settings = db.settingsDao().getSettings();
+            } catch (Exception e) {
+                Log.e("ERR_FETCH_SETTINGS", e.getMessage());
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void unused) {
+            super.onPostExecute(unused);
+            if (settings != null) {
+                retrofitBuilder = new RetrofitBuilder(settings.getDefaultServer());
+                requestPlaceHolder = retrofitBuilder.getRetrofit().create(RequestPlaceHolder.class);
+
+                localServiceConnectionInspectionsList.clear();
+                serviceConnectionsList.clear();
+                uploadAdapter.notifyDataSetChanged();
+                new FetchUnunploadedInspections().execute();
+
+                upload_button.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        try {
+                            new UploadData().execute();
+                            new UploadImages().execute();
+                        } catch (Exception e){
+                            Log.e("ERR_UPLOAD", e.getMessage());
+                        }
+                    }
+                });
+            } else {
+                startActivity(new Intent(Upload.this, SettingsActivity.class));
+            }
         }
     }
 }
