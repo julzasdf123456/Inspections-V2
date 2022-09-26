@@ -84,52 +84,52 @@ public class LoginActivity extends AppCompatActivity {
         loginBtn = (MaterialButton) findViewById(R.id.loginBtn);
         settingsBtn = findViewById(R.id.settingsBtn);
 
-        loginBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-                NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-
-                // CHECK MOBILE DATA
-                boolean mobileDataEnabled = false;
-                try {
-                    Class cmClass = Class.forName(connManager.getClass().getName());
-                    Method method = cmClass.getDeclaredMethod("getMobileDataEnabled");
-                    method.setAccessible(true); // Make the method callable
-                    // get the setting for "mobile data"
-                    mobileDataEnabled = (Boolean)method.invoke(connManager);
-                } catch (Exception e) {
-                    // Some problem accessible private API
-                    // TODO do whatever error handling you want here
-                }
-
-                if (mWifi.isConnected()) {
-                    // PERFORM ONLINE LOGIN USING WIFI
-                    if (username.getText().equals("") | null == username.getText() | password.getText().equals("") | null == password.getText()) {
-                        Snackbar.make(username, "Please fill in the fields to login", Snackbar.LENGTH_LONG).show();
-                    } else {
-                        login();
-                    }
-                } else {
-                    if (mobileDataEnabled) {
-                        // PERFORM ONLINE LOGIN USING MOBILE DATA
-                        if (username.getText().equals("") | null == username.getText() | password.getText().equals("") | null == password.getText()) {
-                            Snackbar.make(username, "Please fill in the fields to login", Snackbar.LENGTH_LONG).show();
-                        } else {
-                            login();
-                        }
-                    } else {
-                        // PERFORM OFFLINE LOGIN
-                        if (username.getText().equals("") | null == username.getText() | password.getText().equals("") | null == password.getText()) {
-                            Snackbar.make(username, "Please fill in the fields to login", Snackbar.LENGTH_LONG).show();
-                        } else {
-                            new LoginOffline().execute(username.getText().toString(), password.getText().toString());
-                        }
-                    }
-
-                }
-            }
-        });
+//        loginBtn.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+//                NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+//
+//                // CHECK MOBILE DATA
+//                boolean mobileDataEnabled = false;
+//                try {
+//                    Class cmClass = Class.forName(connManager.getClass().getName());
+//                    Method method = cmClass.getDeclaredMethod("getMobileDataEnabled");
+//                    method.setAccessible(true); // Make the method callable
+//                    // get the setting for "mobile data"
+//                    mobileDataEnabled = (Boolean)method.invoke(connManager);
+//                } catch (Exception e) {
+//                    // Some problem accessible private API
+//                    // TODO do whatever error handling you want here
+//                }
+//
+//                if (mWifi.isConnected()) {
+//                    // PERFORM ONLINE LOGIN USING WIFI
+//                    if (username.getText().equals("") | null == username.getText() | password.getText().equals("") | null == password.getText()) {
+//                        Snackbar.make(username, "Please fill in the fields to login", Snackbar.LENGTH_LONG).show();
+//                    } else {
+//                        login();
+//                    }
+//                } else {
+//                    if (mobileDataEnabled) {
+//                        // PERFORM ONLINE LOGIN USING MOBILE DATA
+//                        if (username.getText().equals("") | null == username.getText() | password.getText().equals("") | null == password.getText()) {
+//                            Snackbar.make(username, "Please fill in the fields to login", Snackbar.LENGTH_LONG).show();
+//                        } else {
+//                            login();
+//                        }
+//                    } else {
+//                        // PERFORM OFFLINE LOGIN
+//                        if (username.getText().equals("") | null == username.getText() | password.getText().equals("") | null == password.getText()) {
+//                            Snackbar.make(username, "Please fill in the fields to login", Snackbar.LENGTH_LONG).show();
+//                        } else {
+//                            new LoginOffline().execute(username.getText().toString(), password.getText().toString());
+//                        }
+//                    }
+//
+//                }
+//            }
+//        });
 
         settingsBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -194,7 +194,7 @@ public class LoginActivity extends AppCompatActivity {
             OfflineUsers offlineUsers = offlineUsersDao.getOne(strings[0]);
 
             if (offlineUsers == null) {
-                offlineUsersDao.insertAll(new OfflineUsers(0, strings[0], strings[1], strings[2]));
+                offlineUsersDao.insertAll(new OfflineUsers(0, strings[0], strings[1], strings[2], "YES"));
                 Log.e("SAVE_USR", "User saved");
             } else {
                 offlineUsersDao.updateAll(offlineUsers);
@@ -212,14 +212,14 @@ public class LoginActivity extends AppCompatActivity {
 
         @Override
         protected Void doInBackground(String... strings) {
-            UsersDao usersDao = db.usersDao();
-            Users existing = usersDao.getOne(strings[0], strings[1]);
+            OfflineUsersDao usersDao = db.offlineUsersDao();
+            OfflineUsers existing = usersDao.getOne(strings[0], strings[1]);
 
             if (existing == null) {
                 doesUserExists = false;
             } else {
                 doesUserExists = true;
-                userid = existing.getId();
+                userid = existing.getUserId();
             }
             return null;
         }
@@ -241,10 +241,16 @@ public class LoginActivity extends AppCompatActivity {
 
     public class FetchSettings extends AsyncTask<Void, Void, Void> {
 
+        OfflineUsers offlineUsers;
+
         @Override
         protected Void doInBackground(Void... voids) {
             try {
                 settings = db.settingsDao().getSettings();
+
+                OfflineUsersDao offlineUsersDao = db.offlineUsersDao();
+
+                offlineUsers = offlineUsersDao.getFirst();
             } catch (Exception e) {
                 Log.e("ERR_FETCH_SETTINGS", e.getMessage());
             }
@@ -257,8 +263,104 @@ public class LoginActivity extends AppCompatActivity {
             if (settings != null) {
                 retrofitBuilder = new RetrofitBuilder(settings.getDefaultServer());
                 requestPlaceHolder = retrofitBuilder.getRetrofit().create(RequestPlaceHolder.class);
+
+                if (offlineUsers != null) {
+                    username.setText(offlineUsers.getUsername());
+                    password.setText(offlineUsers.getPassword());
+                }
+
+                new CommenceAutoLogin().execute();
             } else {
                 startActivity(new Intent(LoginActivity.this, SettingsActivity.class));
+            }
+        }
+    }
+
+    public class CommenceAutoLogin extends AsyncTask<Void, Void, Void> {
+
+        boolean doesUserExists = false;
+        String userid = "";
+        String usernameT, passwordT;
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            try {
+                OfflineUsersDao usersDao = db.offlineUsersDao();
+                OfflineUsers existing = usersDao.getFirst();
+
+                if (existing == null) {
+                    doesUserExists = false;
+                } else {
+                    if (existing.getLoggedIn() != null && existing.getLoggedIn().equals("YES")) {
+                        doesUserExists = true;
+                        userid = existing.getUserId() + "";
+                        usernameT = existing.getUsername();
+                        passwordT = existing.getPassword();
+                    } else {
+                        doesUserExists = false;
+                    }
+
+                }
+            } catch (Exception e) {
+                Log.e("ERR_AUTO_LGN", e.getMessage());
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void unused) {
+            super.onPostExecute(unused);
+            if (doesUserExists) {
+                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                intent.putExtra("USERID", userid);
+                startActivity(intent);
+                finish();
+            } else {
+                loginBtn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+                        NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+
+                        // CHECK MOBILE DATA
+                        boolean mobileDataEnabled = false;
+                        try {
+                            Class cmClass = Class.forName(connManager.getClass().getName());
+                            Method method = cmClass.getDeclaredMethod("getMobileDataEnabled");
+                            method.setAccessible(true); // Make the method callable
+                            // get the setting for "mobile data"
+                            mobileDataEnabled = (Boolean)method.invoke(connManager);
+                        } catch (Exception e) {
+                            // Some problem accessible private API
+                            // TODO do whatever error handling you want here
+                        }
+
+                        if (mWifi.isConnected()) {
+                            // PERFORM ONLINE LOGIN USING WIFI
+                            if (username.getText().equals("") | null == username.getText() | password.getText().equals("") | null == password.getText()) {
+                                Snackbar.make(username, "Please fill in the fields to login", Snackbar.LENGTH_LONG).show();
+                            } else {
+                                login();
+                            }
+                        } else {
+                            if (mobileDataEnabled) {
+                                // PERFORM ONLINE LOGIN USING MOBILE DATA
+                                if (username.getText().equals("") | null == username.getText() | password.getText().equals("") | null == password.getText()) {
+                                    Snackbar.make(username, "Please fill in the fields to login", Snackbar.LENGTH_LONG).show();
+                                } else {
+                                    login();
+                                }
+                            } else {
+                                // PERFORM OFFLINE LOGIN
+                                if (username.getText().equals("") | null == username.getText() | password.getText().equals("") | null == password.getText()) {
+                                    Snackbar.make(username, "Please fill in the fields to login", Snackbar.LENGTH_LONG).show();
+                                } else {
+                                    new LoginOffline().execute(username.getText().toString(), password.getText().toString());
+                                }
+                            }
+                        }
+                    }
+                });
             }
         }
     }

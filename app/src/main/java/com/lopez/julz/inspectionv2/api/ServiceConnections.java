@@ -19,7 +19,9 @@ public class ServiceConnections {
             ConnectionApplicationType,
             BuildingType,
             Status,
-            Notes;
+            Notes,
+            BarangayFull,
+            TownFull;
 
     public ServiceConnections(){}
 
@@ -28,7 +30,7 @@ public class ServiceConnections {
         this.ServiceAccountName = serviceAccountName;
     }
 
-    public ServiceConnections(String id, String memberConsumerId, String dateOfApplication, String serviceAccountName, String accountCount, String sitio, String barangay, String town, String contactNumber, String emailAddress, String accountType, String accountOrganization, String organizationAccountNumber, String isNIHE, String accountApplicationType, String connectionApplicationType, String buildingType, String status, String notes) {
+    public ServiceConnections(String id, String memberConsumerId, String dateOfApplication, String serviceAccountName, String accountCount, String sitio, String barangay, String town, String contactNumber, String emailAddress, String accountType, String accountOrganization, String organizationAccountNumber, String isNIHE, String accountApplicationType, String connectionApplicationType, String buildingType, String status, String notes, String barangayFull, String townFull) {
         this.id = id;
         MemberConsumerId = memberConsumerId;
         DateOfApplication = dateOfApplication;
@@ -48,6 +50,8 @@ public class ServiceConnections {
         BuildingType = buildingType;
         Status = status;
         Notes = notes;
+        BarangayFull = barangayFull;
+        TownFull = townFull;
     }
 
     public String getId() {
@@ -200,5 +204,21 @@ public class ServiceConnections {
 
     public void setNotes(String notes) {
         Notes = notes;
+    }
+
+    public String getBarangayFull() {
+        return BarangayFull;
+    }
+
+    public void setBarangayFull(String barangayFull) {
+        BarangayFull = barangayFull;
+    }
+
+    public String getTownFull() {
+        return TownFull;
+    }
+
+    public void setTownFull(String townFull) {
+        TownFull = townFull;
     }
 }

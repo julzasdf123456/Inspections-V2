@@ -33,6 +33,8 @@ import com.lopez.julz.inspectionv2.classes.UploadAdapter;
 import com.lopez.julz.inspectionv2.database.AppDatabase;
 import com.lopez.julz.inspectionv2.database.LocalServiceConnectionInspections;
 import com.lopez.julz.inspectionv2.database.LocalServiceConnections;
+import com.lopez.julz.inspectionv2.database.MastPoles;
+import com.lopez.julz.inspectionv2.database.PayTransactions;
 import com.lopez.julz.inspectionv2.database.Photos;
 import com.lopez.julz.inspectionv2.database.ServiceConnectionInspectionsDao;
 import com.lopez.julz.inspectionv2.database.ServiceConnectionsDao;
@@ -64,6 +66,10 @@ public class Upload extends AppCompatActivity {
     public List<LocalServiceConnectionInspections> localServiceConnectionInspectionsList;
     public TextView total_upload, upload_progress_text;
 
+    public List<MastPoles> mastPoles;
+
+    public List<PayTransactions> payTransactions;
+
     public FloatingActionButton upload_button;
     public RetrofitBuilder retrofitBuilder;
     private RequestPlaceHolder requestPlaceHolder;
@@ -72,6 +78,9 @@ public class Upload extends AppCompatActivity {
     public LinearProgressIndicator upload_progress_bar;
 
     public Settings settings;
+
+    int inspectionMaxSize = 0;
+    int currentProgress = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,13 +98,14 @@ public class Upload extends AppCompatActivity {
         upload_progress_text = (TextView) findViewById(R.id.upload_progress_text);
         upload_progress_bar = (LinearProgressIndicator) findViewById(R.id.upload_progress_bar);
 
-        upload_area.setVisibility(View.GONE);
-
         localServiceConnectionInspectionsList = new ArrayList<>();
         serviceConnectionsList = new ArrayList<>();
         uploadAdapter = new UploadAdapter(serviceConnectionsList, this);
         upload_recyclerview.setAdapter(uploadAdapter);
         upload_recyclerview.setLayoutManager(new LinearLayoutManager(this));
+        mastPoles = new ArrayList<>();
+
+        payTransactions = new ArrayList<>();
 
         setSupportActionBar(upload_toolbar);
         getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_round_arrow_back_24);
@@ -128,7 +138,9 @@ public class Upload extends AppCompatActivity {
         @Override
         protected Void doInBackground(Void... voids) {
             ServiceConnectionInspectionsDao serviceConnectionInspectionsDao = db.serviceConnectionInspectionsDao();
-            localServiceConnectionInspectionsList = serviceConnectionInspectionsDao.getAllByStatus("Approved");
+            localServiceConnectionInspectionsList = serviceConnectionInspectionsDao.getUploadable();
+            mastPoles = db.mastPolesDao().getUnuploadedMastPoles();
+            payTransactions = db.payTransactionsDao().getAll();
 
             ServiceConnectionsDao serviceConnectionsDao = db.serviceConnectionsDao();
             for (int i=0; i<localServiceConnectionInspectionsList.size(); i++) {
@@ -141,8 +153,55 @@ public class Upload extends AppCompatActivity {
         @Override
         protected void onPostExecute(Void unused) {
             super.onPostExecute(unused);
-            total_upload.setText("Total Size: " + localServiceConnectionInspectionsList.size());
+            inspectionMaxSize = localServiceConnectionInspectionsList.size();
+            total_upload.setText("Total Size: " + inspectionMaxSize);
+            upload_progress_bar.setMax(inspectionMaxSize);
             uploadAdapter.notifyDataSetChanged();
+        }
+    }
+
+    public void uploadData() {
+        try {
+            if (localServiceConnectionInspectionsList != null && localServiceConnectionInspectionsList.size() > 0) {
+                int i = 0;
+                Log.e("UPLOADING", "Uploading ID " + localServiceConnectionInspectionsList.get(i).getId());
+
+
+                Call<LocalServiceConnectionInspections> call = requestPlaceHolder.updateServiceConnections(localServiceConnectionInspectionsList.get(i));
+
+                int finalI = i;
+                call.enqueue(new Callback<LocalServiceConnectionInspections>() {
+                    @Override
+                    public void onResponse(Call<LocalServiceConnectionInspections> call, Response<LocalServiceConnectionInspections> response) {
+                        if (!response.isSuccessful()) {
+                            Log.e("ERR_UPLOAD", response.message());
+                            Toast.makeText(Upload.this, "Error uploading data! " + response.message(), Toast.LENGTH_LONG).show();
+                        } else {
+//                            setProgress(finalI+1);
+                            new UpdateUploadedData().execute(localServiceConnectionInspectionsList.get(finalI).getServiceConnectionId());
+                            Log.e("UPLOADED", response.message());
+                            localServiceConnectionInspectionsList.remove(i);
+                            currentProgress++;
+                            upload_progress_bar.setProgress(currentProgress);
+                            uploadData();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<LocalServiceConnectionInspections> call, Throwable t) {
+                        Toast.makeText(Upload.this, "Error uploading data! " + t.getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                });
+            } else {
+                currentProgress = 0;
+                upload_progress_bar.setMax(mastPoles.size());
+                upload_progress_bar.setProgress(0);
+                upload_progress_text.setText("Uploading Mast Poles...");
+
+                uploadMastPoles();
+            }
+        } catch (Exception e) {
+            Log.e("ERR_UPLD_DT", e.getMessage());
         }
     }
 
@@ -169,6 +228,12 @@ public class Upload extends AppCompatActivity {
 
         @Override
         protected Void doInBackground(Void... voids) {
+            // upload mast poles
+            for (int x=0; x<mastPoles.size(); x++) {
+//                uploadMastPoles(mastPoles.get(x));
+            }
+
+            // UPLOAD INSPECTIONS
             for (int i=0; i<size; i++) {
                 Log.e("UPLOADING", "Uploading ID " + localServiceConnectionInspectionsList.get(i).getId());
 
@@ -245,8 +310,15 @@ public class Upload extends AppCompatActivity {
             LocalServiceConnections localServiceConnections = serviceConnectionsDao.getOne(strings[0]);
             LocalServiceConnectionInspections localServiceConnectionInspections = serviceConnectionInspectionsDao.getOneBySvcId(strings[0]);
 
-            localServiceConnections.setStatus("TRASH");
-            localServiceConnectionInspections.setStatus("TRASH");
+//            localServiceConnections.setStatus("TRASH");
+//            localServiceConnectionInspections.setStatus("TRASH");
+            if (localServiceConnections != null) {
+                serviceConnectionsDao.delete(localServiceConnections.getId());
+            }
+
+            if (localServiceConnectionInspections != null) {
+                serviceConnectionInspectionsDao.deleteOnById(localServiceConnectionInspections.getId());
+            }
 
             serviceConnectionsDao.updateServiceConnections(localServiceConnections);
             serviceConnectionInspectionsDao.updateServiceConnectionInspections(localServiceConnectionInspections);
@@ -320,6 +392,72 @@ public class Upload extends AppCompatActivity {
         }
     }
 
+    public void uploadMastPoles() {
+        try {
+            if (mastPoles != null && mastPoles.size() > 0) {
+                MastPoles mastPole = mastPoles.get(0);
+
+                Call<MastPoles> mastPolesCall = requestPlaceHolder.uploadMastPoles(mastPole);
+
+                mastPolesCall.enqueue(new Callback<MastPoles>() {
+                    @Override
+                    public void onResponse(Call<MastPoles> call, Response<MastPoles> response) {
+                        if (response.isSuccessful()) {
+                            new UpdateMastPole().execute(mastPole);
+                            mastPoles.remove(0);
+                            currentProgress++;
+                            upload_progress_bar.setProgress(currentProgress);
+                        } else {
+                            Toast.makeText(Upload.this, "Mastpole " + mastPole.getPoleRemarks() + " upload failed!", Toast.LENGTH_SHORT).show();
+                            Log.e("ERR_UPLD_MST_PL", response.raw() + "");
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<MastPoles> call, Throwable t) {
+                        Toast.makeText(Upload.this, "Mastpole " + mastPole.getPoleRemarks() + " upload failed!", Toast.LENGTH_SHORT).show();
+                        Log.e("ERR_UPLD_MST_PL", t.getMessage());
+                        t.printStackTrace();
+                    }
+                });
+            } else {
+                currentProgress = 0;
+                upload_progress_bar.setMax(payTransactions.size());
+                upload_progress_bar.setProgress(0);
+                upload_progress_text.setText("Uploading Bill Deposits...");
+
+                uploadBillDeposits();
+            }
+
+        } catch (Exception e) {
+            Log.e("ERR_UPLD_MST_PL", e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public class UpdateMastPole extends AsyncTask<MastPoles, Void, Void> {
+
+        @Override
+        protected Void doInBackground(MastPoles... mastPoles) {
+            try {
+                if (mastPoles != null) {
+                    MastPoles mastPole = mastPoles[0];
+                    mastPole.setIsUploaded("Yes");
+                    db.mastPolesDao().updateAll(mastPole);
+                }
+            } catch (Exception e) {
+                Log.e("ERR_UPDT_MST_PL", e.getMessage());
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void unused) {
+            super.onPostExecute(unused);
+            uploadMastPoles();
+        }
+    }
+
     public class FetchSettings extends AsyncTask<Void, Void, Void> {
 
         @Override
@@ -348,7 +486,8 @@ public class Upload extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         try {
-                            new UploadData().execute();
+//                            new UploadData().execute();
+                            uploadData();
                             new UploadImages().execute();
                         } catch (Exception e){
                             Log.e("ERR_UPLOAD", e.getMessage());
@@ -358,6 +497,90 @@ public class Upload extends AppCompatActivity {
             } else {
                 startActivity(new Intent(Upload.this, SettingsActivity.class));
             }
+        }
+    }
+
+    public void uploadBillDeposits() {
+        try {
+            if (payTransactions != null && payTransactions.size() > 0) {
+                PayTransactions payTransaction = payTransactions.get(0);
+
+                Call<PayTransactions> payTransactionsCall = requestPlaceHolder.receiveBillDeposits(payTransaction);
+
+                payTransactionsCall.enqueue(new Callback<PayTransactions>() {
+                    @Override
+                    public void onResponse(Call<PayTransactions> call, Response<PayTransactions> response) {
+                        if (response.isSuccessful()) {
+                            new DeletePayTransaction().execute(payTransaction.getId());
+
+                            payTransactions.remove(0);
+                            currentProgress++;
+                            upload_progress_bar.setProgress(currentProgress);
+
+                            uploadBillDeposits();
+                        } else {
+                            Toast.makeText(Upload.this, "Error uploading bill deposit", Toast.LENGTH_SHORT).show();
+                            Log.e("ERR_UPLD_MST_PL", response.raw() + "");
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<PayTransactions> call, Throwable t) {
+                        Toast.makeText(Upload.this, "Error uploading bill deposit", Toast.LENGTH_SHORT).show();
+                        Log.e("ERR_UPLD_MST_PL", t.getMessage());
+                        t.printStackTrace();
+                    }
+                });
+            } else {
+                AlertDialog.Builder builder
+                        = new AlertDialog
+                        .Builder(Upload.this);
+
+                builder.setTitle("Success");
+
+                builder.setMessage("Upload successful!");
+
+                builder.setCancelable(false);
+
+                builder.setNegativeButton("Close", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog,int which) {
+                        dialog.cancel();
+                        finish();
+                    }
+                });
+
+                AlertDialog alertDialog = builder.create();
+
+                alertDialog.setOnShowListener(new DialogInterface.OnShowListener() {
+                    @SuppressLint("ResourceAsColor")
+                    @Override
+                    public void onShow(DialogInterface dialog) {
+                        alertDialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(R.color.black);
+                    }
+                });
+
+                alertDialog.show();
+            }
+        } catch (Exception e) {
+            Log.e("ERR_UPLD_BLL_DEP", e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public class DeletePayTransaction extends AsyncTask<String, Void, Void> {
+
+        @Override
+        protected Void doInBackground(String... strings) {
+            try {
+                if (strings != null && strings[0] != null) {
+                    db.payTransactionsDao().delete(strings[0]);
+                }
+            } catch (Exception e) {
+                Log.e("ERR_DEL_PT", e.getMessage());
+                e.printStackTrace();
+            }
+            return null;
         }
     }
 }

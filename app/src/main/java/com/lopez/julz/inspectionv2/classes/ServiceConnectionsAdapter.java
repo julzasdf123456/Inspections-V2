@@ -1,6 +1,7 @@
 package com.lopez.julz.inspectionv2.classes;
 
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -57,11 +58,11 @@ public class ServiceConnectionsAdapter extends RecyclerView.Adapter<ServiceConne
     }
 
     @Override
-    public void onBindViewHolder(@NonNull @org.jetbrains.annotations.NotNull ServiceConnectionsAdapter.ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull @org.jetbrains.annotations.NotNull ServiceConnectionsAdapter.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
         ServiceConnections localServiceConnections = localServiceConnectionsList.get(position);
 
         holder.download_recyclerview_name.setText(localServiceConnections.getServiceAccountName());
-        holder.download_recyclerview_id.setText(localServiceConnections.getId());
+        holder.download_recyclerview_id.setText(ObjectHelpers.getAddress(localServiceConnections));
 
         holder.delete_btn.setOnClickListener(new View.OnClickListener() {
             @Override

@@ -4,6 +4,7 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/AndroidStudioProjects/InspectionV2/app/src/main/res/drawable/circular_btn.xml" value="0.2578125" />
+        <entry key="..\:/AndroidStudioProjects/InspectionV2/app/src/main/res/drawable/circular_btn_red.xml" value="0.2765625" />
         <entry key="..\:/AndroidStudioProjects/InspectionV2/app/src/main/res/drawable/options_custom_form.xml" value="0.3728205128205128" />
         <entry key="..\:/AndroidStudioProjects/InspectionV2/app/src/main/res/layout/activity_archive_index.xml" value="0.1721014492753623" />
         <entry key="..\:/AndroidStudioProjects/InspectionV2/app/src/main/res/layout/activity_download.xml" value="0.17844202898550723" />
@@ -14,9 +15,10 @@
         <entry key="..\:/AndroidStudioProjects/InspectionV2/app/src/main/res/layout/activity_upload.xml" value="0.1953125" />
         <entry key="..\:/AndroidStudioProjects/InspectionV2/app/src/main/res/layout/archive_recyclerview_layout.xml" value="0.24166666666666667" />
         <entry key="..\:/AndroidStudioProjects/InspectionV2/app/src/main/res/layout/download_recyclerview_layout.xml" value="0.17844202898550723" />
-        <entry key="..\:/AndroidStudioProjects/InspectionV2/app/src/main/res/layout/form_as_installed.xml" value="0.25" />
+        <entry key="..\:/AndroidStudioProjects/InspectionV2/app/src/main/res/layout/form_as_installed.xml" value="0.33" />
         <entry key="..\:/AndroidStudioProjects/InspectionV2/app/src/main/res/layout/form_geo.xml" value="0.25" />
         <entry key="..\:/AndroidStudioProjects/InspectionV2/app/src/main/res/layout/form_photos.xml" value="0.3625" />
+        <entry key="..\:/AndroidStudioProjects/InspectionV2/app/src/main/res/layout/mastpoles_recyclerview_layout.xml" value="0.2604166666666667" />
         <entry key="..\:/AndroidStudioProjects/InspectionV2/app/src/main/res/layout/upload_progress.xml" value="0.21822916666666667" />
         <entry key="..\:/AndroidStudioProjects/InspectionV2/app/src/main/res/layout/upload_recyclerview_layout.xml" value="0.1953125" />
         <entry key="..\:/AndroidStudioProjects/InspectionV2/app/src/main/res/menu/image_menu.xml" value="0.19583333333333333" />

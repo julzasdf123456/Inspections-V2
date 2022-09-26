@@ -20,6 +20,9 @@ public class OfflineUsers {
     @ColumnInfo (name = "Password")
     private String Password;
 
+    @ColumnInfo (name = "LoggedIn")
+    private String LoggedIn;
+
     public OfflineUsers() {}
 
     public OfflineUsers(int id, String userId, String username, String password) {
@@ -27,6 +30,14 @@ public class OfflineUsers {
         UserId = userId;
         Username = username;
         Password = password;
+    }
+
+    public OfflineUsers(int id, String userId, String username, String password, String loggedIn) {
+        this.id = id;
+        UserId = userId;
+        Username = username;
+        Password = password;
+        LoggedIn = loggedIn;
     }
 
     public int getId() {
@@ -59,5 +70,13 @@ public class OfflineUsers {
 
     public void setPassword(String password) {
         Password = password;
+    }
+
+    public String getLoggedIn() {
+        return LoggedIn;
+    }
+
+    public void setLoggedIn(String loggedIn) {
+        LoggedIn = loggedIn;
     }
 }

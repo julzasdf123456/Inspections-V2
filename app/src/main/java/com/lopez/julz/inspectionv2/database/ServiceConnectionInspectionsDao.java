@@ -1,6 +1,7 @@
 package com.lopez.julz.inspectionv2.database;
 
 import androidx.room.Dao;
+import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
 import androidx.room.Update;
@@ -32,4 +33,10 @@ public interface ServiceConnectionInspectionsDao {
 
     @Query("SELECT * FROM LocalServiceConnectionInspections WHERE Status = :status")
     List<LocalServiceConnectionInspections> getAllByStatus(String status);
+
+    @Query("SELECT * FROM LocalServiceConnectionInspections WHERE Status = 'Approved' OR Status = 'Re-Inspection'")
+    List<LocalServiceConnectionInspections> getUploadable();
+
+    @Query("DELETE FROM LocalServiceConnectionInspections WHERE id = :id")
+    void deleteOnById(String id);
 }

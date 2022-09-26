@@ -227,9 +227,35 @@
             <com.mapbox.mapboxsdk.maps.MapView
                 android:id="@+id/mapViewForm"
                 android:layout_width="match_parent"
-                android:layout_height="140dp"
+                android:layout_height="250dp"
                 android:layout_marginTop="10dp"
                 app:mapbox_cameraZoom="15" />
+
+            <androidx.coordinatorlayout.widget.CoordinatorLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/addMastPole"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Add Mast Pole"
+                    android:layout_marginBottom="5dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/TextAppearance.AppCompat.Title"
+                    android:layout_marginTop="4dp"
+                    android:id="@+id/svcDropLength"
+                    android:layout_gravity="right"/>
+
+            </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/mastPolesRecyclerview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
 
         </LinearLayout>
 

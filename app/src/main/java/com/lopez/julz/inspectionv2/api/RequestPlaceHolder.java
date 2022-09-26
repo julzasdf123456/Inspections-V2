@@ -3,6 +3,8 @@ package com.lopez.julz.inspectionv2.api;
 import com.lopez.julz.inspectionv2.classes.Login;
 import com.lopez.julz.inspectionv2.database.Barangays;
 import com.lopez.julz.inspectionv2.database.LocalServiceConnectionInspections;
+import com.lopez.julz.inspectionv2.database.MastPoles;
+import com.lopez.julz.inspectionv2.database.PayTransactions;
 import com.lopez.julz.inspectionv2.database.Photos;
 import com.lopez.julz.inspectionv2.database.Towns;
 
@@ -42,4 +44,10 @@ public interface RequestPlaceHolder {
     @Multipart
     @POST("save-uploaded-images")
     Call<ResponseBody> saveUploadedImages(@Query("svcId") String svcId, @Part MultipartBody.Part file);
+
+    @POST("receive-mast-poles")
+    Call<MastPoles> uploadMastPoles(@Body MastPoles mastPoles);
+
+    @POST("receive-bill-deposits")
+    Call<PayTransactions> receiveBillDeposits(@Body PayTransactions payTransactions);
 }

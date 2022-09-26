@@ -3,25 +3,32 @@ package com.lopez.julz.inspectionv2;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.Constraints;
 import androidx.core.content.FileProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 import androidx.transition.AutoTransition;
 import androidx.transition.TransitionManager;
 
 import android.content.ActivityNotFoundException;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -39,17 +46,28 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+import com.lopez.julz.inspectionv2.classes.MastPoleAdapters;
 import com.lopez.julz.inspectionv2.database.AppDatabase;
 import com.lopez.julz.inspectionv2.database.LocalServiceConnectionInspections;
 import com.lopez.julz.inspectionv2.database.LocalServiceConnections;
+import com.lopez.julz.inspectionv2.database.MastPoles;
+import com.lopez.julz.inspectionv2.database.PayTransactions;
+import com.lopez.julz.inspectionv2.database.PayTransactionsDao;
 import com.lopez.julz.inspectionv2.database.Photos;
 import com.lopez.julz.inspectionv2.database.ServiceConnectionInspectionsDao;
 import com.lopez.julz.inspectionv2.database.ServiceConnectionsDao;
+import com.lopez.julz.inspectionv2.database.TotalPayments;
 import com.lopez.julz.inspectionv2.helpers.AlertHelpers;
 import com.lopez.julz.inspectionv2.helpers.ObjectHelpers;
 import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
+import com.mapbox.geojson.Feature;
+import com.mapbox.geojson.FeatureCollection;
+import com.mapbox.geojson.LineString;
+import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.Mapbox;
+import com.mapbox.mapboxsdk.camera.CameraPosition;
+import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.location.LocationComponent;
 import com.mapbox.mapboxsdk.location.LocationComponentActivationOptions;
 import com.mapbox.mapboxsdk.location.modes.CameraMode;
@@ -58,6 +76,13 @@ import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.maps.Style;
+import com.mapbox.mapboxsdk.plugins.annotation.Symbol;
+import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager;
+import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions;
+import com.mapbox.mapboxsdk.style.layers.LineLayer;
+import com.mapbox.mapboxsdk.style.layers.Property;
+import com.mapbox.mapboxsdk.style.layers.PropertyFactory;
+import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 
 import java.io.File;
 import java.io.IOException;
@@ -77,10 +102,12 @@ public class FormEdit extends AppCompatActivity implements PermissionsListener, 
     public MaterialButton minimize;
     public LinearLayout form_hidable_svc_details;
     public MaterialCardView form_svc_details;
-    public TextView form_name, form_address, form_svc_id, form_contact;
+    public TextView form_name, form_address, form_svc_id, form_contact, form_title, svcDropLength;
 
     public EditText formBreakerRatingPlanned, formBreakerRatingInstalled, formBreakerBranchesPlanned, formBreakerBranchesInstalled;
     public TextView formSdwSizePlanned, formSdwSizeInstalled, formSdwLengthPlanned, formSdwLengthInstalled;
+
+    public EditText billDeposit, looping, mop, lengthSubTotal;
 
     public EditText formLiftPolesDiameterGI, formLiftPolesDiameterConcrete, formLiftPolesDiameterHardWood;
     public EditText formLiftPolesHeightGI, formLiftPolesHeightConcrete, formLiftPolesHeightHardWood;
@@ -102,10 +129,25 @@ public class FormEdit extends AppCompatActivity implements PermissionsListener, 
     private PermissionsManager permissionsManager;
     private MapboxMap mapboxMap;
     private LocationComponent locationComponent;
+    public Style style;
 
     static final int REQUEST_PICTURE_CAPTURE = 1;
     public FlexboxLayout imageFields;
     public String currentPhotoPath;
+
+    // MAST POLES
+    public MaterialButton addMastPole;
+    public List<MastPoles> mastPoles;
+    public RecyclerView mastPolesRecyclerview;
+    public MastPoleAdapters mastPoleAdapters;
+    public String LINE_SOURCE_ID = "linesource";
+    public String LINE_LAYER_ID = "linelayer";
+    public Double distance = 0.0, geoPointsDistance = 0.0;
+    public boolean firstInit = true;
+
+    // DEPOSITS
+    public PayTransactions payTransactions;
+    public TotalPayments totalPayments;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -138,6 +180,7 @@ public class FormEdit extends AppCompatActivity implements PermissionsListener, 
         form_address = (TextView) findViewById(R.id.form_address);
         form_svc_id = (TextView) findViewById(R.id.form_svc_id);
         form_contact = (TextView) findViewById(R.id.form_contact);
+        form_title = findViewById(R.id.form_title);
 
         formBreakerRatingPlanned = (EditText) findViewById(R.id.formBreakerRatingPlanned);
         formBreakerRatingInstalled = (EditText) findViewById(R.id.formBreakerRatingInstalled);
@@ -175,6 +218,21 @@ public class FormEdit extends AppCompatActivity implements PermissionsListener, 
         formGeoMeteringPoleBtn = (ImageButton) findViewById(R.id.formGeoMeteringPoleBtn);
         formGeoSEPoleBtn = (ImageButton) findViewById(R.id.formGeoSEPoleBtn);
 
+        // mast poles
+        addMastPole = findViewById(R.id.addMastPole);
+        svcDropLength = findViewById(R.id.svcDropLength);
+        mastPoles = new ArrayList<>();
+        mastPolesRecyclerview = findViewById(R.id.mastPolesRecyclerview);
+        mastPoleAdapters = new MastPoleAdapters(mastPoles, this, db);
+        mastPolesRecyclerview.setAdapter(mastPoleAdapters);
+        mastPolesRecyclerview.setLayoutManager(new LinearLayoutManager(this));
+
+        // added
+        billDeposit = findViewById(R.id.billDeposit);
+        looping = findViewById(R.id.looping);
+        mop = findViewById(R.id.mop);
+        lengthSubTotal = findViewById(R.id.lengthSubTotal);
+
         cameraBtn = findViewById(R.id.cameraBtn);
         imageFields = findViewById(R.id.imageFields);
 
@@ -210,28 +268,32 @@ public class FormEdit extends AppCompatActivity implements PermissionsListener, 
         formGeoTappingPoleBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                fetchCoordinates(formGeoTappingPole);
+                fetchCoordinates(formGeoTappingPole, "tw-provincial-2");
+                new FetchMastPoles().execute(svcId);
             }
         });
 
         formGeoMeteringPoleBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                fetchCoordinates(formGeoMeteringPole);
+                fetchCoordinates(formGeoMeteringPole, "hu-main-2");
+                new FetchMastPoles().execute(svcId);
             }
         });
 
         formGeoSEPoleBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                fetchCoordinates(formSEPole);
+                fetchCoordinates(formSEPole, "tw-provincial-expy-2");
+                new FetchMastPoles().execute(svcId);
             }
         });
 
         formGeoBuildingBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                fetchCoordinates(formGeoBuilding);
+                fetchCoordinates(formGeoBuilding, "in-national-3");
+                new FetchMastPoles().execute(svcId);
             }
         });
 
@@ -242,7 +304,69 @@ public class FormEdit extends AppCompatActivity implements PermissionsListener, 
             }
         });
 
+        lengthSubTotal.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                try {
+                    looping.setText(ObjectHelpers.roundTwoNoComma(getLooping()));
+                    formSdwLengthInstalled.setText(ObjectHelpers.roundTwoNoComma(getTotalServiceDrop()));
+                } catch (Exception e) {
+                    Log.e("ERR_UPD_SVC_DROP", e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
+        addMastPole.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(FormEdit.this);
+
+                    EditText mastPoleRemarks = new EditText(FormEdit.this);
+                    mastPoleRemarks.setHint("Pole Name or Pole Description");
+                    mastPoleRemarks.setText("Mast Pole # " + (mastPoles.size()+1));
+
+                    builder.setTitle("Add Mast Pole Details")
+                            .setView(mastPoleRemarks)
+                            .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            })
+                            .setPositiveButton("ADD", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    new AddMastPole().execute(mastPoleRemarks.getText().toString(), svcId);
+                                    firstInit = false;
+                                }
+                            });
+
+                    AlertDialog dialog = builder.create();
+
+                    dialog.show();
+                } catch (Exception e) {
+                    Log.e("ERR_ADD_MST_PL", e.getMessage());
+                }
+            }
+        });
+
         new GetPhotos().execute();
+    }
+
+    public void setStyle(Style style) {
+        this.style = style;
     }
 
     @Override
@@ -277,10 +401,15 @@ public class FormEdit extends AppCompatActivity implements PermissionsListener, 
     public void onMapReady(@NonNull MapboxMap mapboxMap) {
         try {
             this.mapboxMap = mapboxMap;
-            mapboxMap.setStyle(Style.LIGHT, new Style.OnStyleLoaded() {
+            mapboxMap.setStyle(new Style.Builder()
+                    .fromUri("mapbox://styles/julzlopez/ckavvidmh61bt1iqp2n1ilgec"), new Style.OnStyleLoaded() {
                 @Override
                 public void onStyleLoaded(@NonNull Style style) {
+                    setStyle(style);
+
                     enableLocationComponent(style);
+
+                    new FetchMastPoles().execute(svcId);
                 }
             });
         } catch (Exception e) {
@@ -414,12 +543,18 @@ public class FormEdit extends AppCompatActivity implements PermissionsListener, 
         mapView.onLowMemory();
     }
 
-    public void fetchCoordinates(EditText destination) {
+    public void fetchCoordinates(EditText destination, String iconImage) {
         if (locationComponent == null) {
             Toast.makeText(FormEdit.this, "Location service unavailable. Switch to manual mode.", Toast.LENGTH_LONG).show();
         } else {
             if (null != locationComponent.getLastKnownLocation()) {
                 destination.setText(locationComponent.getLastKnownLocation().getLatitude() + "," + locationComponent.getLastKnownLocation().getLongitude());
+                try {
+                    addMarkers(style, new LatLng(locationComponent.getLastKnownLocation().getLatitude(), locationComponent.getLastKnownLocation().getLongitude()), iconImage);
+                } catch (Exception e) {
+                    Log.e("ERR_PLOT_MARKER", e.getMessage());
+                    Toast.makeText(FormEdit.this, "Unable to plot marker\n" + e.getMessage(), Toast.LENGTH_LONG).show();
+                }
             }
         }
     }
@@ -436,6 +571,10 @@ public class FormEdit extends AppCompatActivity implements PermissionsListener, 
 
                 barangay = db.barangaysDao().getOne(serviceConnections.getBarangay()).getBarangay();
                 town = db.townsDao().getOne(serviceConnections.getTown()).getTown();
+
+                // DEPOSITS
+                totalPayments = db.totalPaymentsDao().getOneByServiceConnectionId(strings[0]);
+                payTransactions = db.payTransactionsDao().getOneByServiceConnectionId(strings[0]);
             } catch (Exception e) {
                 Log.e("ERR_GET_SVC_FORM", e.getMessage());
             }
@@ -454,6 +593,11 @@ public class FormEdit extends AppCompatActivity implements PermissionsListener, 
                     form_svc_id.setText(serviceConnections.getId());
                     form_address.setText(serviceConnections.getSitio() + ", " + barangay + ", " + town);
                     form_contact.setText(serviceConnections.getContactNumber());
+                    form_title.setText("Form (" + serviceConnections.getConnectionApplicationType() + ")");
+                }
+
+                if (payTransactions != null) {
+                    billDeposit.setText(payTransactions.getAmount());
                 }
             } catch (Exception e) {
                 Log.e("ERR_GET_SVC", e.getMessage());
@@ -524,7 +668,227 @@ public class FormEdit extends AppCompatActivity implements PermissionsListener, 
         }
     }
 
+    class FetchMastPoles extends AsyncTask<String, Void, Void> {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            mastPoles.clear();
+        }
+
+        @Override
+        protected Void doInBackground(String... strings) {
+            try {
+                if (strings != null) {
+                    mastPoles.addAll(db.mastPolesDao().getAllMastPoles(strings[0]));
+                }
+            } catch (Exception e) {
+                Log.e("ERR_GET_MST_PLS", e.getMessage());
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void unused) {
+            super.onPostExecute(unused);
+            mastPoleAdapters.notifyDataSetChanged();
+
+            List<Point> latLngList = new ArrayList<>();
+
+            // DISPLAY POINTS
+            if (serviceConnectionInspections != null) {
+                if (formGeoMeteringPole.getText() != null) {
+                    String splitted[] = formGeoMeteringPole.getText().toString().split(",");
+                    if (splitted.length > 1) {
+                        String lat = formGeoMeteringPole.getText().toString().split(",")[0];
+                        String longi = formGeoMeteringPole.getText().toString().split(",")[1];
+                        addMarkers(style, new LatLng(Double.valueOf(lat), Double.valueOf(longi)), "hu-main-2");
+                        latLngList.add(Point.fromLngLat(Double.valueOf(longi), Double.valueOf(lat)));
+                    }
+                }
+
+                if (formGeoTappingPole.getText() != null) {
+                    String splitted[] = formGeoTappingPole.getText().toString().split(",");
+                    if (splitted.length > 1) {
+                        String lat = formGeoTappingPole.getText().toString().split(",")[0];
+                        String longi = formGeoTappingPole.getText().toString().split(",")[1];
+                        addMarkers(style, new LatLng(Double.valueOf(lat), Double.valueOf(longi)), "tw-provincial-2");
+                        latLngList.add(Point.fromLngLat(Double.valueOf(longi), Double.valueOf(lat)));
+                    }
+                }
+
+                if (formSEPole.getText() != null) {
+                    String splitted[] = formSEPole.getText().toString().split(",");
+                    if (splitted.length > 1) {
+                        String lat = formSEPole.getText().toString().split(",")[0];
+                        String longi = formSEPole.getText().toString().split(",")[1];
+                        addMarkers(style, new LatLng(Double.valueOf(lat), Double.valueOf(longi)), "tw-provincial-expy-2");
+                        latLngList.add(Point.fromLngLat(Double.valueOf(longi), Double.valueOf(lat)));
+                    }
+                }
+
+                if (formGeoBuilding.getText() != null) {
+                    String splitted[] = formGeoBuilding.getText().toString().split(",");
+                    if (splitted.length > 1) {
+                        String lat = formGeoBuilding.getText().toString().split(",")[0];
+                        String longi = formGeoBuilding.getText().toString().split(",")[1];
+                        addMarkers(style, new LatLng(Double.valueOf(lat), Double.valueOf(longi)), "in-national-3");
+                        latLngList.add(Point.fromLngLat(Double.valueOf(longi), Double.valueOf(lat)));
+                    }
+                }
+            }
+
+            // ADD LINE TO MAP
+            try {
+                List<Point> routes = new ArrayList<>();
+                distance = 0.0;
+
+                /**
+                 *
+                 * SERVICE CONNECTION LONG LATS
+                 */
+                LatLng prevPoint;
+                LatLng presPoint;
+                for (int x=0; x<latLngList.size(); x++) {
+                    routes.add(latLngList.get(x));
+
+                    Log.e("TEST_SC", Double.valueOf(latLngList.get(x).longitude()) + "");
+                }
+
+                /**
+                 * MAST POLES
+                 */
+                for (int i=0; i<mastPoles.size(); i++) {
+                    routes.add(Point.fromLngLat(Double.valueOf(mastPoles.get(i).getLongitude()), Double.valueOf(mastPoles.get(i).getLatitude())));
+
+                    addMarkers(style, new LatLng(Double.valueOf(mastPoles.get(i).getLatitude()), Double.valueOf(mastPoles.get(i).getLongitude())), "za-provincial-2");
+                }
+
+                Log.e("TST", routes.size() + "");
+
+                /**
+                 * GET DISTANCES
+                 */
+                for(int j=0; j<routes.size(); j++) {
+                    if (routes.size() > 0) {
+                        if (j > 0) {
+                            prevPoint = new LatLng(Double.valueOf(routes.get(j-1).latitude()), Double.valueOf(routes.get(j-1).longitude()));
+                            presPoint = new LatLng(Double.valueOf(routes.get(j).latitude()), Double.valueOf(routes.get(j).longitude()));
+
+                            distance += presPoint.distanceTo(prevPoint);
+                        }
+                    } else {
+                        distance = 0.0;
+                    }
+                }
+
+                svcDropLength.setText("Len: " + ObjectHelpers.roundTwo(distance)  + " mtrs");
+
+                if (!firstInit) {
+                    lengthSubTotal.setText(ObjectHelpers.roundTwoNoComma(distance));
+
+                    looping.setText(ObjectHelpers.roundTwoNoComma(getLooping()));
+                    formSdwLengthInstalled.setText(ObjectHelpers.roundTwo(getTotalServiceDrop()));
+                }
+
+            } catch (Exception e) {
+                Log.e("ERR_ADD_LN_MST_PL", e.getMessage());
+            }
+        }
+    }
+
+    public double getTotalServiceDrop() {
+        try {
+            double subTotal = lengthSubTotal.getText() != null ? Double.valueOf(lengthSubTotal.getText().toString()) : 0;
+            double mOp = mop.getText() != null ? Double.valueOf(mop.getText().toString()) : 0;
+            double loop = (subTotal + mOp) * .05;
+            return  subTotal + mOp + loop;
+        } catch (Exception e) {
+            Log.e("ERR_GET_SVC_TTL", e.getMessage());
+            return 0;
+        }
+    }
+
+    public double getLooping() {
+        try {
+            double subTotal = lengthSubTotal.getText() != null ? Double.valueOf(lengthSubTotal.getText().toString()) : 0;
+            double mOp = mop.getText() != null ? Double.valueOf(mop.getText().toString()) : 0;
+            return (subTotal + mOp) * .05;
+        } catch (Exception e) {
+            Log.e("ERR_GET_SVC_TTL", e.getMessage());
+            return 0;
+        }
+    }
+
+    class AddMastPole extends AsyncTask<String, Void, Void> {
+
+        @Override
+        protected Void doInBackground(String... strings) {
+            try {
+                if (strings != null) {
+                    MastPoles mastPoles = new MastPoles();
+                    mastPoles.setId(ObjectHelpers.generateIDandRandString());
+                    mastPoles.setPoleRemarks(strings[0]);
+                    mastPoles.setServiceConnectionId(strings[1]);
+
+                    if (locationComponent != null) {
+                        mastPoles.setLatitude(locationComponent.getLastKnownLocation() != null ? (locationComponent.getLastKnownLocation().getLatitude() + "") : "");
+                        mastPoles.setLongitude(locationComponent.getLastKnownLocation() != null ? (locationComponent.getLastKnownLocation().getLongitude() + "") : "");
+                    }
+
+                    mastPoles.setDateTimeTaken(ObjectHelpers.getDateTime());
+                    mastPoles.setIsUploaded("No");
+
+                    db.mastPolesDao().insertAll(mastPoles);
+                }
+            } catch (Exception e) {
+                Log.e("ERR_ADD_MST_POLE", e.getMessage());
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void unused) {
+            super.onPostExecute(unused);
+            Toast.makeText(FormEdit.this, "Mast Pole Added", Toast.LENGTH_SHORT).show();
+            new FetchMastPoles().execute(svcId);
+        }
+    }
+
+    public void addMarkers(Style style, LatLng latLng, String iconImage) {
+        try {
+            // ADD MARKERS
+            SymbolManager symbolManager = new SymbolManager(mapView, mapboxMap, style);
+
+            symbolManager.setIconAllowOverlap(true);
+            symbolManager.setTextAllowOverlap(true);
+
+            if (latLng != null) {
+                SymbolOptions symbolOptions = new SymbolOptions()
+                        .withLatLng(latLng)
+                        .withIconImage(iconImage)
+                        .withIconSize(.3f);
+
+                Symbol symbol = symbolManager.create(symbolOptions);
+
+                mapboxMap.setCameraPosition(new CameraPosition.Builder()
+                        .target(latLng)
+                        .zoom(14)
+                        .build());
+            }
+        } catch (Exception e) {
+            Log.e("ERR_PLOT_MRKERS", e.getMessage());
+        }
+    }
+
+    public void refreshMap() {
+        new FetchMastPoles().execute(svcId);
+        firstInit = false;
+    }
+
     class UpdateInspectionData extends AsyncTask<String, Void, Void> {
+
+        Object billDepFill;
 
         @Override
         protected void onPreExecute() {
@@ -558,16 +922,42 @@ public class FormEdit extends AppCompatActivity implements PermissionsListener, 
 
             // UPDATE STATUS OF SERVICE CONNECTION
             serviceConnections.setStatus(ObjectHelpers.getSelectedTextFromRadioGroup(formRecommendation, getWindow().getDecorView()));
+
             super.onPreExecute();
         }
 
         @Override
         protected Void doInBackground(String... strings) {
-            ServiceConnectionInspectionsDao serviceConnectionInspectionsDao = db.serviceConnectionInspectionsDao();
-            serviceConnectionInspectionsDao.updateServiceConnectionInspections(serviceConnectionInspections);
+            try {
+                ServiceConnectionInspectionsDao serviceConnectionInspectionsDao = db.serviceConnectionInspectionsDao();
+                serviceConnectionInspectionsDao.updateServiceConnectionInspections(serviceConnectionInspections);
 
-            ServiceConnectionsDao serviceConnectionsDao = db.serviceConnectionsDao();
-            serviceConnectionsDao.updateServiceConnections(serviceConnections);
+                ServiceConnectionsDao serviceConnectionsDao = db.serviceConnectionsDao();
+                serviceConnectionsDao.updateServiceConnections(serviceConnections);
+
+                // ADD BILL DEPOSIT
+                billDepFill = billDeposit.getText();
+                if (billDepFill != null) {
+                    if (payTransactions != null) {
+                        payTransactions.setAmount(billDepFill.toString());
+                        payTransactions.setTotal(billDepFill.toString());
+
+                        db.payTransactionsDao().updateAll(payTransactions);
+                    } else {
+                        payTransactions = new PayTransactions();
+                        payTransactions.setId(ObjectHelpers.generateIDandRandString());
+                        payTransactions.setAmount(billDepFill.toString());
+                        payTransactions.setTotal(billDepFill.toString());
+                        payTransactions.setParticular(com.lopez.julz.inspectionv2.classes.ObjectHelpers.getBillDepositId());
+                        payTransactions.setServiceConnectionId(serviceConnections.getId());
+
+                        db.payTransactionsDao().insertAll(payTransactions);
+                    }
+                }
+            } catch (Exception e) {
+                Log.e("ERR_SV_INSP", e.getMessage());
+            }
+
             return null;
         }
 
@@ -598,7 +988,7 @@ public class FormEdit extends AppCompatActivity implements PermissionsListener, 
         Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         cameraIntent.putExtra( MediaStore.EXTRA_FINISH_ON_COMPLETION, true);
         if (cameraIntent.resolveActivity(getPackageManager()) != null) {
-            startActivityForResult(cameraIntent, REQUEST_PICTURE_CAPTURE);
+//            startActivityForResult(cameraIntent, REQUEST_PICTURE_CAPTURE);
 
             File pictureFile = null;
             try {

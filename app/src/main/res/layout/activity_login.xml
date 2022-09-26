@@ -31,7 +31,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:hint="Username"
-                android:text="inspector2"/>
+                android:text=""/>
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/password"
@@ -40,7 +40,7 @@
                 android:layout_marginTop="5dp"
                 android:inputType="textPassword"
                 android:hint="Password"
-                android:text="inspector2"/>
+                android:text=""/>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/loginBtn"

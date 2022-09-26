@@ -20,6 +20,7 @@
             android:background="@color/purple_500">
 
             <TextView
+                android:id="@+id/form_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Form"
@@ -196,7 +197,7 @@
 
                 </com.google.android.material.card.MaterialCardView>
 
-                <include layout="@layout/form_as_installed"/>
+                <include layout="@layout/form_as_installed" />
 
                 <include layout="@layout/form_geo"/>
 

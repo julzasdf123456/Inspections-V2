@@ -10,7 +10,10 @@ import androidx.room.RoomDatabase;
         Barangays.class,
         Towns.class,
         Users.class,
-        Settings.class}, version = 9)
+        Settings.class,
+        MastPoles.class,
+        PayTransactions.class,
+        TotalPayments.class}, version = 17)
 public abstract class AppDatabase extends RoomDatabase {
     public abstract ServiceConnectionsDao serviceConnectionsDao();
 
@@ -27,4 +30,10 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract UsersDao usersDao();
 
     public abstract SettingsDao settingsDao();
+
+    public abstract MastPolesDao mastPolesDao();
+
+    public abstract PayTransactionsDao payTransactionsDao();
+
+    public abstract TotalPaymentsDao totalPaymentsDao();
 }

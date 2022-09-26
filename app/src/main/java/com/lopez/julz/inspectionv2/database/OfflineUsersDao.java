@@ -20,4 +20,11 @@ public interface OfflineUsersDao {
 
     @Query("SELECT * FROM OfflineUsers WHERE UserId = :id")
     OfflineUsers getOne(String id);
+
+    @Query("SELECT * FROM OfflineUsers ORDER BY id DESC LIMIT 1")
+    OfflineUsers getFirst();
+
+
+    @Query("SELECT * FROM OfflineUsers WHERE Username = :username AND Password = :password")
+    OfflineUsers getOne(String username, String password);
 }

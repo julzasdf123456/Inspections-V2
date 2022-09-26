@@ -196,7 +196,9 @@ public class Download extends AppCompatActivity {
                                 serviceConnectionsList.get(i).getConnectionApplicationType(),
                                 serviceConnectionsList.get(i).getBuildingType(),
                                 "FOR INSPECTION",
-                                serviceConnectionsList.get(i).getNotes());
+                                serviceConnectionsList.get(i).getNotes(),
+                                serviceConnectionsList.get(i).getBarangayFull(),
+                                serviceConnectionsList.get(i).getTownFull());
                         serviceConnectionsDao.insertAll(newLocalSC);
                     } else {
                         serviceConnectionsDao.updateServiceConnections(localServiceConnections);
@@ -287,7 +289,6 @@ public class Download extends AppCompatActivity {
             Log.e("INSPCT_DWNLD_STATUS", "Downloaded " + serviceConnectionInspectionsList.size() + " inspections data");
         }
     }
-
 
     class FetchDownloadableServiceConnections extends AsyncTask<List<ServiceConnections>, Void, Void> {
 

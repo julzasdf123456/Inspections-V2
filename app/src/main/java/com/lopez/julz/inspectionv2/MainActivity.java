@@ -200,7 +200,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(Void... voids) {
             ServiceConnectionInspectionsDao serviceConnectionInspectionsDao = db.serviceConnectionInspectionsDao();
-            localServiceConnectionInspections = serviceConnectionInspectionsDao.getAllByStatus("Approved");
+            localServiceConnectionInspections = serviceConnectionInspectionsDao.getUploadable();
             return null;
         }
 

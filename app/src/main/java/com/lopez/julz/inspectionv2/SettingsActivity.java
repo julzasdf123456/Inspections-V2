@@ -80,6 +80,9 @@ public class SettingsActivity extends AppCompatActivity {
             servers.add("192.168.2.12");
             servers.add("192.168.30.118");
             servers.add("192.168.5.97");
+            servers.add("192.168.0.103");
+            servers.add("192.168.5.5");
+            servers.add("192.168.130.186");
             ArrayAdapter serversAdapter = new ArrayAdapter(this, android.R.layout.simple_spinner_item, servers.toArray());
             serversAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             serverSelect.setAdapter(serversAdapter);
@@ -119,6 +122,7 @@ public class SettingsActivity extends AppCompatActivity {
             try {
                 Settings settings = new Settings(strings[0], strings[1]); // 0 = server, 1 = office
                 db.settingsDao().insertAll(settings);
+                Log.e("TETS",settings.getDefaultServer());
             } catch (Exception e) {
                 Log.e("ERR_SV_SETTINGS", e.getMessage());
             }

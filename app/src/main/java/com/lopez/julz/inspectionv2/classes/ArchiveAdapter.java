@@ -60,15 +60,18 @@ public class ArchiveAdapter extends RecyclerView.Adapter<ArchiveAdapter.ViewHold
     }
 
     @Override
-    public void onBindViewHolder(@NonNull @NotNull ArchiveAdapter.ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull @NotNull ArchiveAdapter.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
         LocalServiceConnections localServiceConnections = localServiceConnectionsList.get(position);
 
         holder.download_recyclerview_name.setText(localServiceConnections.getServiceAccountName());
-        holder.download_recyclerview_id.setText(localServiceConnections.getId());
+        holder.download_recyclerview_id.setText(com.lopez.julz.inspectionv2.classes.ObjectHelpers.getAddress(localServiceConnections));
 
         if (localServiceConnections.getStatus() != null) {
             if (localServiceConnections.getStatus().equals("Approved")) {
                 holder.download_recyclerview_name.setCompoundDrawablesWithIntrinsicBounds(context.getDrawable(R.drawable.ic_round_check_circle_24), null, null, null);
+                holder.download_recyclerview_name.setCompoundDrawablePadding(5);
+            } else if (localServiceConnections.getStatus().equals("Re-Inspection")) {
+                holder.download_recyclerview_name.setCompoundDrawablesWithIntrinsicBounds(context.getDrawable(R.drawable.ic_baseline_error_24), null, null, null);
                 holder.download_recyclerview_name.setCompoundDrawablePadding(5);
             } else {
                 holder.download_recyclerview_name.setCompoundDrawables(null, null, null, null);
